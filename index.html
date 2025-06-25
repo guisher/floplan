@@ -225,6 +225,11 @@
             setWeeklyPriorities(prevPriorities => prevPriorities.filter(priority => priority.id !== id));
           };
 
+          // NEW: Function to remove all completed weekly priorities
+          const removeCompletedWeeklyPriorities = () => {
+            setWeeklyPriorities(prevPriorities => prevPriorities.filter(priority => !priority.completed));
+          };
+
           // Function to toggle completion status for a specific habit on a given day
           const toggleHabitDay = (habitId, day) => {
             setHabits(prevHabits =>
@@ -249,6 +254,17 @@
           const deleteHabit = (id) => {
             setHabits(prevHabits => prevHabits.filter(habit => habit.id !== id));
           };
+
+          // NEW: Function to reset all habit checkboxes
+          const resetHabitCheckboxes = () => {
+            setHabits(prevHabits =>
+              prevHabits.map(habit => ({
+                ...habit,
+                days: { M: false, T: false, W: false, H: false, F: false, S: false, U: false }
+              }))
+            );
+          };
+
 
           // Function to toggle completion status for a daily task
           const toggleDailyTask = (day, id) => {
@@ -280,6 +296,14 @@
             }));
           };
 
+          // NEW: Function to remove all completed daily tasks for a specific day
+          const removeCompletedDailyTasks = (day) => {
+            setDailyTasks(prevDailyTasks => ({
+              ...prevDailyTasks,
+              [day]: prevDailyTasks[day].filter(task => !task.completed)
+            }));
+          };
+
           // Short forms for days of the week for the habit tracker header
           const daysOfWeekShort = ['M', 'T', 'W', 'H', 'F', 'S', 'U'];
 
@@ -296,7 +320,16 @@
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8"> {/* Increased gap */}
                   {/* Weekly Priorities Card */}
                   <div className="border-2 border-purple-200 rounded-xl p-6 bg-purple-50 shadow-lg transform transition-transform duration-300 hover:shadow-xl hover:scale-[1.01]">
-                    <h2 className="text-3xl font-semibold text-purple-700 mb-5 pb-3 border-b-2 border-purple-300">Weekly Priorities</h2>
+                    <div className="flex justify-between items-center mb-5 pb-3 border-b-2 border-purple-300">
+                        <h2 className="text-3xl font-semibold text-purple-700">Weekly Priorities</h2>
+                        <button
+                            onClick={removeCompletedWeeklyPriorities}
+                            className="ml-4 px-4 py-2 bg-pink-400 text-white text-sm font-medium rounded-lg shadow-md hover:bg-pink-500 transition-colors duration-200"
+                            title="Remove completed priorities"
+                        >
+                            Remove Done
+                        </button>
+                    </div>
                     <div className="space-y-4"> {/* Increased space */}
                       {weeklyPriorities.map(priority => (
                         <div key={priority.id} className="flex items-start group relative"> {/* Changed items-center to items-start for better wrapping alignment */}
@@ -324,7 +357,16 @@
 
                   {/* Habit Tracker Card */}
                   <div className="border-2 border-green-200 rounded-xl p-6 bg-green-50 shadow-lg transform transition-transform duration-300 hover:shadow-xl hover:scale-[1.01] overflow-x-auto">
-                    <h2 className="text-3xl font-semibold text-green-700 mb-5 pb-3 border-b-2 border-green-300">Habit Tracker</h2>
+                    <div className="flex justify-between items-center mb-5 pb-3 border-b-2 border-green-300">
+                        <h2 className="text-3xl font-semibold text-green-700">Habit Tracker</h2>
+                        <button
+                            onClick={resetHabitCheckboxes}
+                            className="ml-4 px-4 py-2 bg-green-400 text-white text-sm font-medium rounded-lg shadow-md hover:bg-green-500 transition-colors duration-200"
+                            title="Reset all habit checkboxes"
+                        >
+                            Reset
+                        </button>
+                    </div>
                     <table className="min-w-full divide-y divide-green-200 habit-table"> {/* Added custom class habit-table */}
                       <thead className="bg-green-100">
                         <tr>
@@ -376,7 +418,16 @@
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
                   {Object.entries(dailyTasks).map(([day, tasks]) => (
                     <div key={day} className="border-2 border-blue-200 rounded-xl p-5 bg-blue-50 shadow-lg transform transition-transform duration-300 hover:shadow-xl hover:scale-[1.01]">
-                      <h3 className="text-xl font-semibold text-blue-700 mb-4 pb-3 border-b-2 border-blue-300">{day}</h3>
+                      <div className="flex justify-between items-center mb-4 pb-3 border-b-2 border-blue-300">
+                          <h3 className="text-xl font-semibold text-blue-700">{day}</h3>
+                          <button
+                              onClick={() => removeCompletedDailyTasks(day)}
+                              className="ml-4 px-3 py-1 bg-blue-400 text-white text-xs font-medium rounded-lg shadow-md hover:bg-blue-500 transition-colors duration-200"
+                              title={`Remove completed tasks for ${day}`}
+                          >
+                              Remove Done
+                          </button>
+                      </div>
                       <div className="space-y-3">
                         {tasks.map(task => (
                           <div key={task.id} className="flex items-start group relative"> {/* Changed items-center to items-start */}
