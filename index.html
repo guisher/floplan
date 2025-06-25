@@ -59,14 +59,11 @@
             margin-left: auto; /* Pushes button to the right */
             padding: 0 0.5rem;
             line-height: 1; /* Aligns 'X' vertically */
-            transition: color 0.2s ease-in-out, opacity 0.2s ease-in-out;
-            opacity: 0; /* Hidden by default */
+            transition: color 0.2s ease-in-out; /* Removed opacity transition */
+            opacity: 1; /* Always visible now */
             outline: none; /* Remove focus outline */
         }
-        /* Show delete button on group hover */
-        .group:hover .delete-button {
-            opacity: 1;
-        }
+        /* Removed group:hover .delete-button rule as it's always visible */
         .delete-button:hover {
             color: #ef4444; /* Darker red on hover */
         }
