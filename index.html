@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flo's Planner</title>
+    <!-- Google Fonts: Inter for main text -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Base font-family for the entire body */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Custom styles for form-checkbox to match Tailwind's utility classes */
+        /* These ensure consistent styling and color changes on checked state */
+        .form-checkbox {
+            appearance: none;
+            display: inline-block;
+            vertical-align: middle;
+            height: 1.25rem; /* h-5 */
+            width: 1.25rem;  /* w-5 */
+            border-width: 1px;
+            border-color: #d1d5db; /* gray-300 default border */
+            border-radius: 0.25rem; /* rounded-md */
+            background-color: #fff;
+            cursor: pointer;
+            transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, transform 0.15s ease-in-out;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* Subtle shadow for checkboxes */
+        }
+        .form-checkbox:checked {
+            background-color: #fca5a5; /* Soft rose pink for checked state */
+            border-color: #fca5a5;
+            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+            background-size: 100% 100%;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        /* Specific override for habit tracker checkboxes */
+        .form-checkbox.h-4.w-4.text-green-600:checked {
+            background-color: #92e0be; /* Lighter green for habits */
+            border-color: #92e0be;
+        }
+        /* Specific override for daily tasks checkboxes */
+        .form-checkbox.text-purple-600:checked {
+            background-color: #b58ce8; /* Lighter purple for daily tasks */
+            border-color: #b58ce8;
+        }
+
+        /* Styling for the delete button */
+        .delete-button {
+            background: none;
+            border: none;
+            color: #fca5a5; /* Soft red for delete icon */
+            font-size: 1.5rem; /* Slightly larger for better tap target */
+            cursor: pointer;
+            margin-left: auto; /* Pushes button to the right */
+            padding: 0 0.5rem;
+            line-height: 1; /* Aligns 'X' vertically */
+            transition: color 0.2s ease-in-out, opacity 0.2s ease-in-out;
+            opacity: 0; /* Hidden by default */
+            outline: none; /* Remove focus outline */
+        }
+        /* Show delete button on group hover */
+        .group:hover .delete-button {
+            opacity: 1;
+        }
+        .delete-button:hover {
+            color: #ef4444; /* Darker red on hover */
+        }
+
+        /* Subtle background pattern for the body */
+        body {
+            background-color: #fdf2f8; /* Very light pink/cream background */
+            background-image: radial-gradient(#ffe4e6 0.5px, transparent 0.5px);
+            background-size: 15px 15px; /* Slightly larger pattern */
+        }
+
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px; /* For horizontal scrollbars */
+        }
+        ::-webkit-scrollbar-track {
+            background: #fdf2f8; /* Match body background */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #f7d7e4; /* Soft pink for scroll thumb */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #f7a8b8; /* Darker pink on hover */
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <!-- React and ReactDOM CDNs for the application -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX transformation directly in the browser (for development/simple hosting) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        // AddItemInput component for adding new entries to lists
+        const AddItemInput = ({ onAddItem, placeholder }) => {
+          const [inputValue, setInputValue] = React.useState(''); // State for the input field value
+
+          // Handles keyboard events, specifically 'Enter' to add an item
+          const handleKeyDown = (e) => {
+            if (e.key === 'Enter') {
+              onAddItem(inputValue); // Call the provided onAddItem function
+              setInputValue(''); // Clear the input field
+            }
+          };
+
+          return (
+            <input
+              type="text"
+              className="w-full p-2 mt-2 border-b-2 border-pink-200 focus:outline-none focus:border-pink-400 bg-transparent text-gray-700 placeholder-pink-300 text-base"
+              placeholder={placeholder}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)} // Update input state on change
+              onKeyDown={handleKeyDown} // Listen for key presses
+            />
+          );
+        };
+
+        // Main App Component
+        const App = () => {
+          // State for Weekly Priorities, including initial example priorities
+          const [weeklyPriorities, setWeeklyPriorities] = React.useState([
+            { id: 1, text: 'Plan weekly goals', completed: false },
+            { id: 2, text: 'Review project progress', completed: false },
+            { id: 3, text: 'Exercise 3 times', completed: false },
+            { id: 4, text: 'Read a book chapter', completed: false },
+            { id: 5, text: 'Learn new skill', completed: false },
+            { id: 6, text: 'Connect with a friend', completed: false },
+            { id: 7, text: 'Self-care activity', completed: false },
+          ]);
+
+          // State for Habit Tracker, with initial habits and their daily completion status
+          const [habits, setHabits] = React.useState([
+            { id: 1, name: 'Drink 8 glasses of water', days: { M: false, T: false, W: false, H: false, F: false, S: false, U: false } },
+            { id: 2, name: 'Meditate for 10 mins', days: { M: false, T: false, W: false, H: false, F: false, S: false, U: false } },
+            { id: 3, name: 'Walk 30 mins', days: { M: false, T: false, W: false, H: false, F: false, S: false, U: false } },
+            { id: 4, name: 'Journal', days: { M: false, T: false, W: false, H: false, F: false, S: false, U: false } },
+            { id: 5, name: 'No screen before bed', days: { M: false, T: false, W: false, H: false, F: false, S: false, U: false } },
+          ]);
+
+          // State for Daily Tasks, now including Saturday and Sunday
+          const [dailyTasks, setDailyTasks] = React.useState({
+            Monday: [
+              { id: 1, text: 'Finish report', completed: false },
+              { id: 2, text: 'Team meeting', completed: false },
+            ],
+            Tuesday: [
+              { id: 1, text: 'Client call', completed: false },
+              { id: 2, text: 'Prepare presentation', completed: false },
+            ],
+            Wednesday: [
+              { id: 1, text: 'Code review', completed: false },
+              { id: 2, text: 'Project planning', completed: false },
+            ],
+            Thursday: [
+              { id: 1, text: 'Follow-up emails', completed: false },
+              { id: 2, text: 'Research new tools', completed: false },
+            ],
+            Friday: [
+              { id: 1, text: 'Weekly sync', completed: false },
+              { id: 2, text: 'Plan next week', completed: false },
+            ],
+            Saturday: [
+              { id: 1, text: 'Groceries', completed: false },
+              { id: 2, text: 'Hobbies', completed: false },
+            ],
+            Sunday: [
+              { id: 1, text: 'Relax & Recharge', completed: false },
+              { id: 2, text: 'Meal prep', completed: false },
+            ],
+          });
+
+          // Function to toggle completion status for a weekly priority
+          const toggleWeeklyPriority = (id) => {
+            setWeeklyPriorities(prevPriorities =>
+              prevPriorities.map(priority =>
+                priority.id === id ? { ...priority, completed: !priority.completed } : priority
+              )
+            );
+          };
+
+          // Function to add a new weekly priority, generates a unique ID
+          const addWeeklyPriority = (text) => {
+            if (text.trim() === '') return;
+            setWeeklyPriorities(prevPriorities => [
+              ...prevPriorities,
+              { id: prevPriorities.length > 0 ? Math.max(...prevPriorities.map(p => p.id)) + 1 : 1, text, completed: false }
+            ]);
+          };
+
+          // Function to delete a weekly priority by its ID
+          const deleteWeeklyPriority = (id) => {
+            setWeeklyPriorities(prevPriorities => prevPriorities.filter(priority => priority.id !== id));
+          };
+
+          // Function to toggle completion status for a specific habit on a given day
+          const toggleHabitDay = (habitId, day) => {
+            setHabits(prevHabits =>
+              prevHabits.map(habit =>
+                habit.id === habitId
+                  ? { ...habit, days: { ...habit.days, [day]: !habit.days[day] } }
+                  : habit
+              )
+            );
+          };
+
+          // Function to add a new habit, generates a unique ID
+          const addHabit = (name) => {
+            if (name.trim() === '') return;
+            setHabits(prevHabits => [
+              ...prevHabits,
+              { id: prevHabits.length > 0 ? Math.max(...prevHabits.map(h => h.id)) + 1 : 1, name, days: { M: false, T: false, W: false, H: false, F: false, S: false, U: false } }
+            ]);
+          };
+
+          // Function to delete a habit by its ID
+          const deleteHabit = (id) => {
+            setHabits(prevHabits => prevHabits.filter(habit => habit.id !== id));
+          };
+
+          // Function to toggle completion status for a daily task
+          const toggleDailyTask = (day, id) => {
+            setDailyTasks(prevDailyTasks => ({
+              ...prevDailyTasks,
+              [day]: prevDailyTasks[day].map(task =>
+                task.id === id ? { ...task, completed: !task.completed } : task
+              )
+            }));
+          };
+
+          // Function to add a new daily task, generates a unique ID
+          const addDailyTask = (day, text) => {
+            if (text.trim() === '') return;
+            setDailyTasks(prevDailyTasks => ({
+              ...prevDailyTasks,
+              [day]: [
+                ...prevDailyTasks[day],
+                { id: prevDailyTasks[day].length > 0 ? Math.max(...prevDailyTasks[day].map(t => t.id)) + 1 : 1, text, completed: false }
+              ]
+            }));
+          };
+
+          // Function to delete a daily task by its ID
+          const deleteDailyTask = (day, id) => {
+            setDailyTasks(prevDailyTasks => ({
+              ...prevDailyTasks,
+              [day]: prevDailyTasks[day].filter(task => task.id !== id)
+            }));
+          };
+
+          // Short forms for days of the week for the habit tracker header
+          const daysOfWeekShort = ['M', 'T', 'W', 'H', 'F', 'S', 'U'];
+
+          return (
+            <div className="min-h-screen p-4 flex flex-col items-center">
+              {/* Header Section */}
+              <header className="w-full max-w-7xl text-center mb-8 py-6 px-4 rounded-lg bg-gradient-to-r from-pink-300 to-purple-400 shadow-xl transform transition-transform duration-300 hover:scale-[1.01]">
+                <h1 className="text-5xl font-bold text-white tracking-wide leading-tight">Flo's Planner</h1>
+                <p className="text-xl text-white font-medium mt-3 opacity-95">Organize Your Week, Cultivate Your Habits, Live Beautifully</p>
+              </header>
+
+              <div className="max-w-7xl mx-auto w-full bg-white shadow-2xl rounded-xl p-6 md:p-8 transform transition-transform duration-300 hover:scale-[1.005]">
+                {/* Top Section: Weekly Priorities and Habit Tracker */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8"> {/* Increased gap */}
+                  {/* Weekly Priorities Card */}
+                  <div className="border-2 border-purple-200 rounded-xl p-6 bg-purple-50 shadow-lg transform transition-transform duration-300 hover:shadow-xl hover:scale-[1.01]">
+                    <h2 className="text-3xl font-semibold text-purple-700 mb-5 pb-3 border-b-2 border-purple-300">Weekly Priorities</h2>
+                    <div className="space-y-4"> {/* Increased space */}
+                      {weeklyPriorities.map(priority => (
+                        <div key={priority.id} className="flex items-center group relative">
+                          <input
+                            type="checkbox"
+                            checked={priority.completed}
+                            onChange={() => toggleWeeklyPriority(priority.id)}
+                            className="form-checkbox h-5 w-5 rounded-md transition duration-150 ease-in-out cursor-pointer focus:ring-2 focus:ring-pink-300"
+                          />
+                          <span className={`ml-4 text-gray-800 text-lg ${priority.completed ? 'line-through text-gray-500 italic' : ''} flex-grow`}>
+                            {priority.text}
+                          </span>
+                          <button
+                            onClick={() => deleteWeeklyPriority(priority.id)}
+                            className="delete-button"
+                            title="Delete priority"
+                          >
+                            &times;
+                          </button>
+                        </div>
+                      ))}
+                      <AddItemInput onAddItem={addWeeklyPriority} placeholder="Add a new priority..." />
+                    </div>
+                  </div>
+
+                  {/* Habit Tracker Card */}
+                  <div className="border-2 border-green-200 rounded-xl p-6 bg-green-50 shadow-lg transform transition-transform duration-300 hover:shadow-xl hover:scale-[1.01] overflow-x-auto">
+                    <h2 className="text-3xl font-semibold text-green-700 mb-5 pb-3 border-b-2 border-green-300">Habit Tracker</h2>
+                    <table className="min-w-full divide-y divide-green-200">
+                      <thead className="bg-green-100">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider rounded-tl-lg">Habit</th>
+                          {daysOfWeekShort.map(day => (
+                            <th key={day} className="px-2 py-3 text-center text-xs font-medium text-green-700 uppercase tracking-wider">{day}</th>
+                          ))}
+                          <th className="px-2 py-3 text-center text-xs font-medium text-green-700 uppercase tracking-wider rounded-tr-lg"></th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-green-100">
+                        {habits.map(habit => (
+                          <tr key={habit.id}>
+                            <td className="px-4 py-2 whitespace-nowrap text-base font-medium text-gray-800">{habit.name}</td>
+                            {daysOfWeekShort.map(day => (
+                              <td key={day} className="px-2 py-2 whitespace-nowrap text-center">
+                                <input
+                                  type="checkbox"
+                                  checked={habit.days[day]}
+                                  onChange={() => toggleHabitDay(habit.id, day)}
+                                  className="form-checkbox h-4 w-4 rounded-sm cursor-pointer focus:ring-2 focus:ring-green-300"
+                                />
+                              </td>
+                            ))}
+                            <td className="px-2 py-2 whitespace-nowrap text-center">
+                                <button
+                                    onClick={() => deleteHabit(habit.id)}
+                                    className="delete-button text-sm"
+                                    title="Delete habit"
+                                >
+                                    &times;
+                                </button>
+                            </td>
+                          </tr>
+                        ))}
+                        <tr>
+                          <td colSpan="9" className="p-0"> {/* Adjusted colspan */}
+                            <AddItemInput onAddItem={addHabit} placeholder="Add a new habit..." />
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Bottom Section: Daily Tasks */}
+                {/* Updated grid for 7 days: 1 col on mobile, 2 on md, 3 on lg, 4 on xl, 5 on 2xl */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+                  {Object.entries(dailyTasks).map(([day, tasks]) => (
+                    <div key={day} className="border-2 border-blue-200 rounded-xl p-5 bg-blue-50 shadow-lg transform transition-transform duration-300 hover:shadow-xl hover:scale-[1.01]">
+                      <h3 className="text-xl font-semibold text-blue-700 mb-4 pb-3 border-b-2 border-blue-300">{day}</h3>
+                      <div className="space-y-3">
+                        {tasks.map(task => (
+                          <div key={task.id} className="flex items-center group relative">
+                            <input
+                              type="checkbox"
+                              checked={task.completed}
+                              onChange={() => toggleDailyTask(day, task.id)}
+                              className="form-checkbox h-5 w-5 rounded-md cursor-pointer focus:ring-2 focus:ring-purple-300"
+                            />
+                            <span className={`ml-3 text-gray-800 text-lg ${task.completed ? 'line-through text-gray-500 italic' : ''} flex-grow`}>
+                              {task.text}
+                            </span>
+                            <button
+                                onClick={() => deleteDailyTask(day, task.id)}
+                                className="delete-button"
+                                title="Delete task"
+                            >
+                                &times;
+                            </button>
+                          </div>
+                        ))}
+                        <AddItemInput onAddItem={(text) => addDailyTask(day, text)} placeholder={`Add task for ${day}...`} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        };
+
+        // Render the App component to the root div
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
