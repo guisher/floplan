@@ -94,6 +94,27 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #f7a8b8; /* Darker pink on hover */
         }
+
+        /* Custom styles for table layout */
+        .habit-table {
+            table-layout: fixed; /* Fix table layout to prevent columns from growing too wide */
+            width: 100%; /* Ensure table takes full width of its container */
+        }
+        .habit-table th:first-child,
+        .habit-table td:first-child {
+            width: 40%; /* Allocate more width for the habit name */
+        }
+        .habit-table th,
+        .habit-table td {
+            word-wrap: break-word; /* Ensure long words break */
+            white-space: normal; /* Allow text to wrap naturally */
+        }
+        /* Ensure text wrapping for priority and task items */
+        .wrap-text {
+            white-space: normal;
+            word-break: break-word; /* For breaking long words */
+            overflow-wrap: break-word; /* Modern equivalent */
+        }
     </style>
 </head>
 <body>
@@ -134,13 +155,13 @@
         const App = () => {
           // State for Weekly Priorities, including initial example priorities
           const [weeklyPriorities, setWeeklyPriorities] = React.useState([
-            { id: 1, text: 'Plan weekly goals', completed: false },
-            { id: 2, text: 'Review project progress', completed: false },
-            { id: 3, text: 'Exercise 3 times', completed: false },
-            { id: 4, text: 'Read a book chapter', completed: false },
-            { id: 5, text: 'Learn new skill', completed: false },
-            { id: 6, text: 'Connect with a friend', completed: false },
-            { id: 7, text: 'Self-care activity', completed: false },
+            { id: 1, text: 'Plan weekly goals which can be quite extensive and require detailed planning', completed: false },
+            { id: 2, text: 'Review project progress and ensure all milestones are on track for completion', completed: false },
+            { id: 3, text: 'Exercise 3 times a week, combining cardio with strength training for overall fitness', completed: false },
+            { id: 4, text: 'Read a book chapter from your favorite novel or a non-fiction book to learn something new', completed: false },
+            { id: 5, text: 'Learn new skill or continue developing an existing one, like coding or a new language', completed: false },
+            { id: 6, text: 'Connect with a friend or family member, perhaps a quick call or a coffee meet-up', completed: false },
+            { id: 7, text: 'Self-care activity like a relaxing bath, a quiet walk, or listening to calming music', completed: false },
           ]);
 
           // State for Habit Tracker, with initial habits and their daily completion status
@@ -155,32 +176,32 @@
           // State for Daily Tasks, now including Saturday and Sunday
           const [dailyTasks, setDailyTasks] = React.useState({
             Monday: [
-              { id: 1, text: 'Finish report', completed: false },
-              { id: 2, text: 'Team meeting', completed: false },
+              { id: 1, text: 'Finish report which is a very very long report that needs multiple lines to describe and elaborate on various aspects', completed: false },
+              { id: 2, text: 'Team meeting with John, Jane, and the rest of the department to discuss Q3 goals and upcoming initiatives', completed: false },
             ],
             Tuesday: [
-              { id: 1, text: 'Client call', completed: false },
-              { id: 2, text: 'Prepare presentation', completed: false },
+              { id: 1, text: 'Client call with important stakeholders from the new project proposal to finalize details and scope', completed: false },
+              { id: 2, text: 'Prepare presentation slides for the upcoming quarterly review session, ensuring all data is accurate and visually appealing', completed: false },
             ],
             Wednesday: [
-              { id: 1, text: 'Code review', completed: false },
-              { id: 2, text: 'Project planning', completed: false },
+              { id: 1, text: 'Code review for the new feature branch, focusing on performance optimizations and security best practices', completed: false },
+              { id: 2, text: 'Project planning session to outline milestones and assign responsibilities for the next sprint, including contingency plans', completed: false },
             ],
             Thursday: [
-              { id: 1, text: 'Follow-up emails', completed: false },
-              { id: 2, text: 'Research new tools', completed: false },
+              { id: 1, text: 'Follow-up emails for all pending requests and unanswered queries from yesterday, prioritizing urgent communications', completed: false },
+              { id: 2, text: 'Research new tools and technologies that can potentially streamline our development workflow and improve efficiency', completed: false },
             ],
             Friday: [
-              { id: 1, text: 'Weekly sync', completed: false },
-              { id: 2, text: 'Plan next week', completed: false },
+              { id: 1, text: 'Weekly sync up meeting with the entire team to discuss progress and blockers, celebrating successes and addressing challenges', completed: false },
+              { id: 2, text: 'Plan next week\'s tasks and objectives, ensuring all priorities are aligned with strategic goals and personal development', completed: false },
             ],
             Saturday: [
-              { id: 1, text: 'Groceries', completed: false },
-              { id: 2, text: 'Hobbies', completed: false },
+              { id: 1, text: 'Groceries shopping for the entire week, focusing on healthy and organic options to support a balanced diet', completed: false },
+              { id: 2, text: 'Hobbies time: Dedicate at least two hours to painting or playing an instrument to relax and express creativity', completed: false },
             ],
             Sunday: [
-              { id: 1, text: 'Relax & Recharge', completed: false },
-              { id: 2, text: 'Meal prep', completed: false },
+              { id: 1, text: 'Relax & Recharge: Unwind with a good book or a long walk in the park to clear your mind and destress', completed: false },
+              { id: 2, text: 'Meal prep for the upcoming busy work week to save time and ensure healthy eating habits throughout the days', completed: false },
             ],
           });
 
@@ -281,19 +302,19 @@
                     <h2 className="text-3xl font-semibold text-purple-700 mb-5 pb-3 border-b-2 border-purple-300">Weekly Priorities</h2>
                     <div className="space-y-4"> {/* Increased space */}
                       {weeklyPriorities.map(priority => (
-                        <div key={priority.id} className="flex items-center group relative">
+                        <div key={priority.id} className="flex items-start group relative"> {/* Changed items-center to items-start for better wrapping alignment */}
                           <input
                             type="checkbox"
                             checked={priority.completed}
                             onChange={() => toggleWeeklyPriority(priority.id)}
-                            className="form-checkbox h-5 w-5 rounded-md transition duration-150 ease-in-out cursor-pointer focus:ring-2 focus:ring-pink-300"
+                            className="form-checkbox h-5 w-5 rounded-md transition duration-150 ease-in-out cursor-pointer focus:ring-2 focus:ring-pink-300 flex-shrink-0" /* Added flex-shrink-0 */
                           />
-                          <span className={`ml-4 text-gray-800 text-lg ${priority.completed ? 'line-through text-gray-500 italic' : ''} flex-grow`}>
+                          <span className={`ml-4 text-gray-800 text-lg ${priority.completed ? 'line-through text-gray-500 italic' : ''} flex-grow wrap-text`}> {/* Added wrap-text class */}
                             {priority.text}
                           </span>
                           <button
                             onClick={() => deleteWeeklyPriority(priority.id)}
-                            className="delete-button"
+                            className="delete-button flex-shrink-0" /* Added flex-shrink-0 */
                             title="Delete priority"
                           >
                             &times;
@@ -307,7 +328,7 @@
                   {/* Habit Tracker Card */}
                   <div className="border-2 border-green-200 rounded-xl p-6 bg-green-50 shadow-lg transform transition-transform duration-300 hover:shadow-xl hover:scale-[1.01] overflow-x-auto">
                     <h2 className="text-3xl font-semibold text-green-700 mb-5 pb-3 border-b-2 border-green-300">Habit Tracker</h2>
-                    <table className="min-w-full divide-y divide-green-200">
+                    <table className="min-w-full divide-y divide-green-200 habit-table"> {/* Added custom class habit-table */}
                       <thead className="bg-green-100">
                         <tr>
                           <th className="px-4 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider rounded-tl-lg">Habit</th>
@@ -320,7 +341,9 @@
                       <tbody className="bg-white divide-y divide-green-100">
                         {habits.map(habit => (
                           <tr key={habit.id}>
-                            <td className="px-4 py-2 whitespace-nowrap text-base font-medium text-gray-800">{habit.name}</td>
+                            <td className="px-4 py-2 text-base font-medium text-gray-800"> {/* Removed whitespace-nowrap, `habit-table` CSS handles wrapping here */}
+                              {habit.name}
+                            </td>
                             {daysOfWeekShort.map(day => (
                               <td key={day} className="px-2 py-2 whitespace-nowrap text-center">
                                 <input
@@ -331,7 +354,7 @@
                                 />
                               </td>
                             ))}
-                            <td className="px-2 py-2 whitespace-nowrap text-center">
+                            <td className="px-2 py-2 text-center">
                                 <button
                                     onClick={() => deleteHabit(habit.id)}
                                     className="delete-button text-sm"
@@ -353,26 +376,25 @@
                 </div>
 
                 {/* Bottom Section: Daily Tasks */}
-                {/* Updated grid for 7 days: 1 col on mobile, 2 on md, 3 on lg, 4 on xl, 5 on 2xl */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
                   {Object.entries(dailyTasks).map(([day, tasks]) => (
                     <div key={day} className="border-2 border-blue-200 rounded-xl p-5 bg-blue-50 shadow-lg transform transition-transform duration-300 hover:shadow-xl hover:scale-[1.01]">
                       <h3 className="text-xl font-semibold text-blue-700 mb-4 pb-3 border-b-2 border-blue-300">{day}</h3>
                       <div className="space-y-3">
                         {tasks.map(task => (
-                          <div key={task.id} className="flex items-center group relative">
+                          <div key={task.id} className="flex items-start group relative"> {/* Changed items-center to items-start */}
                             <input
                               type="checkbox"
                               checked={task.completed}
                               onChange={() => toggleDailyTask(day, task.id)}
-                              className="form-checkbox h-5 w-5 rounded-md cursor-pointer focus:ring-2 focus:ring-purple-300"
+                              className="form-checkbox h-5 w-5 rounded-md cursor-pointer focus:ring-2 focus:ring-purple-300 flex-shrink-0" /* Added flex-shrink-0 */
                             />
-                            <span className={`ml-3 text-gray-800 text-lg ${task.completed ? 'line-through text-gray-500 italic' : ''} flex-grow`}>
+                            <span className={`ml-3 text-gray-800 text-lg ${task.completed ? 'line-through text-gray-500 italic' : ''} flex-grow wrap-text`}> {/* Added wrap-text class */}
                               {task.text}
                             </span>
                             <button
                                 onClick={() => deleteDailyTask(day, task.id)}
-                                className="delete-button"
+                                className="delete-button flex-shrink-0" /* Added flex-shrink-0 */
                                 title="Delete task"
                             >
                                 &times;
